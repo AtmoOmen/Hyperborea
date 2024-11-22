@@ -157,7 +157,7 @@ public unsafe class Memory
         try
         {
             var opcode = *(ushort*)a2;
-            if (C.OpcodesZoneUp.Contains(opcode))
+            if (Config.OpcodesZoneUp.Contains(opcode))
             {
                 PluginLog.Verbose($"[HyperFirewall] Passing outgoing packet with opcode {opcode} through.");
                 return PacketDispatcher_OnSendPacketHook.Original(a1, a2, a3, a4);
@@ -189,7 +189,7 @@ public unsafe class Memory
         {
             var opcode = *(ushort*)(a3 + 2);
 
-            if (C.OpcodesZoneDown.Contains(opcode))
+            if (Config.OpcodesZoneDown.Contains(opcode))
             {
                 PluginLog.Verbose($"[HyperFirewall] Passing incoming packet with opcode {opcode} through.");
                 PacketDispatcher_OnReceivePacketHook.Original(a1, a2, a3);
