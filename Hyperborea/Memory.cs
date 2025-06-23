@@ -11,6 +11,13 @@ public unsafe class Memory
     [EzHook("40 55 56 57 41 56 41 57 48 83 EC 50 48 8B F9", false)]
     internal EzHook<LoadZone> LoadZoneHook;
 
+    const string PacketDispatcher_OnReceivePacketHookSig = "40 55 53 56 57 41 55 41 56 41 57 48 8D AC 24 ?? ?? ?? ?? B8 ?? ?? ?? ?? E8 ?? ?? ?? ?? 48 2B E0 48 8B 05 ?? ?? ?? ?? 48 33 C4 48 89 85 ?? ?? ?? ?? 45 0F B7 78";
+    internal delegate void PacketDispatcher_OnReceivePacket(nint a1, uint a2, nint a3);
+    [EzHook(PacketDispatcher_OnReceivePacketHookSig, false)]
+    internal EzHook<PacketDispatcher_OnReceivePacket> PacketDispatcher_OnReceivePacketHook;
+    [EzHook(PacketDispatcher_OnReceivePacketHookSig, false)]
+    internal EzHook<PacketDispatcher_OnReceivePacket> PacketDispatcher_OnReceivePacketMonitorHook;
+
     internal delegate byte PacketDispatcher_OnSendPacket(nint a1, nint a2, nint a3, byte a4);
     [EzHook("48 89 5C 24 ?? 48 89 74 24 ?? 4C 89 64 24 ?? 55 41 56 41 57 48 8B EC 48 83 EC 70", false)]
     internal EzHook<PacketDispatcher_OnSendPacket> PacketDispatcher_OnSendPacketHook;
@@ -36,12 +43,12 @@ public unsafe class Memory
 
     internal byte* ActiveScene;
 
-    private static int HeartbeatOpcode;
-
+    private static ushort HeartbeatOpcode;
+    
     public Memory()
     {
-        HeartbeatOpcode = Marshal.ReadInt32(Svc.SigScanner.ScanText("C7 44 24 ?? ?? ?? ?? ?? 48 F7 F1") + 0x4);
-        
+        HeartbeatOpcode = (ushort)Marshal.ReadInt32(Svc.SigScanner.ScanText("C7 44 24 ?? ?? ?? ?? ?? 48 F7 F1") + 0x4);
+        PluginLog.Information($"ZoneUp opcode: {HeartbeatOpcode}");
         EzSignatureHelper.Initialize(this);
         ActiveScene = (byte*)(((nint)EnvManager.Instance()) + 36);
     }
@@ -123,7 +130,8 @@ public unsafe class Memory
         try
         {
             var opcode = *(ushort*)a2;
-            if ((ushort)HeartbeatOpcode == opcode)
+
+            if (opcode == HeartbeatOpcode)
             {
                 PluginLog.Verbose($"[HyperFirewall] Passing outgoing packet with opcode {opcode} through.");
                 return PacketDispatcher_OnSendPacketHook.Original(a1, a2, a3, a4);

@@ -9,4 +9,6 @@ public class Config : IEzConfig
     public float NoclipSpeed = 0.05f;
     public bool ForcedFlight = false;
     public string GameVersion = "";
+    public uint[] OpcodesZoneDown = [];
+    //public uint[] OpcodesZoneUp = [];
 }
